@@ -1,0 +1,46 @@
+# Environnement virtuel Python
+venv/
+.env/
+env/
+.venv/
+
+# Fichiers Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Fichiers de compilation/build PyInstaller
+build/
+dist/
+*.spec
+*.log
+
+# Fichiers exécutables
+F-Keyfy-Linux
+*.exe
+*.app
+
+# Fichiers de cache
+*.qss.cache
+.cache/
+*.cache
+
+# Fichiers IDE/Editeur
+.vscode/
+.idea/
+*.swp
+*~
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Fichiers de données temporaires
+*.tmp
+*.temp
+
+# Fichiers personnels (ton code source)
+# NE PAS mettre ici tes fichiers .py, .qss, .ico, .txt !
+
