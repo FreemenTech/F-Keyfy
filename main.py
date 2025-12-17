@@ -272,8 +272,8 @@ class MainWindow(QMainWindow):
         Entreprise : X-Security
         Année : 2025
 
-        Contact : hfreemen9.@gmail.com
-        GitHub : github.com/freemen812
+        Contact : houngbedjifreemen.@gmail.com
+        GitHub : @FreemenTech
 
         “Secure your world — one password at a time.”
         
@@ -282,8 +282,6 @@ class MainWindow(QMainWindow):
         msg.setWindowTitle("Aide - F-Keyfy")
         msg.setText(about_text)
         msg.exec()
-
-
 
 
 def main():

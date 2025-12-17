@@ -1,84 +1,116 @@
-# 🔐 F-Keyfy
+# F-Keyfy
 
-**F-Keyfy** - Application desktop de vérification de force , de non-compromision et génération de mots de passe sécurisés, développée avec PySide6 et Python.
+**F-Keyfy** is a desktop application designed to **evaluate password strength**, **detect compromised passwords**, and **generate secure passwords**.  
+It is built with **Python** and **PySide6**, with a strong focus on **security, privacy, and usability**.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![PySide6](https://img.shields.io/badge/PySide6-GUI-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-## ✨ Fonctionnalités
+---
 
-- ✅ **Vérification avancée** de la force des mots de passe
-- 🔧 **Génération intelligente** de mots de passe sécurisés  
-- 🎨 **Interface moderne** avec styles personnalisés
-- ⚡ **Threads asynchrones** pour une expérience fluide
-- 📊 **Analyse détaillée** de la sécurité des mots de passe
-- 🎯 **Verification de "non-fuite"** du mot de passe
+## Features
 
-## 🚀 Installation & Utilisation
+- Advanced password strength analysis
+- Secure password generation
+- Compromised password detection using **Have I Been Pwned**
+- Detailed security feedback and recommendations
+- Modern desktop GUI (PySide6 + QSS)
+- Asynchronous threading for smooth performance
 
-### Méthode 1 : Depuis les sources
+---
+
+## Why F-Keyfy?
+
+Weak, reused, or leaked passwords remain one of the main causes of security breaches.  
+F-Keyfy aims to:
+
+- Help users evaluate the real strength of their passwords
+- Detect whether a password has already appeared in known data breaches
+- Encourage the use of strong and unique passwords
+- Provide a fast, local, and user-friendly desktop solution
+
+---
+
+## Security & Privacy
+
+Security and privacy are core principles of F-Keyfy:
+
+- Passwords are **never stored**
+- Passwords are **never logged**
+- No plaintext password is saved locally
+- Compromised password checks use the **Have I Been Pwned API**
+- The password is processed in a **hashed form** before being checked
+- Only partial hashes are transmitted (k-anonymity model)
+- No sensitive data is sent or retained
+
+F-Keyfy does **not** track users and does **not** collect personal data.
+
+---
+
+## Installation & Usage
+
+### From source
+
 ```bash
-# Cloner le repository
+# Clone the repository
 git clone https://github.com/freemen812/F-Keyfy.git
 cd F-Keyfy
 
-# Installer les dépendances
+# Install dependencies
 pip install -r requirements.txt
 
-# Lancer l'application
+# Run the application
 python main.py
 
-Méthode 2 : Installation rapide
-
-
-pip install PySide6
-python main.py
-
-
-🛠 Technologies Utilisées
-
-    PySide6 - Framework GUI moderne
-
-    Python 3.8+ - Langage de programmation
-
-    QSS - Styling CSS-like pour l'interface
-
-    Threading - Gestion des processus asynchrones
-
-📦 Structure du Projet
-
+Project Structure
 
 F-Keyfy/
-├── main.py                 # Point d'entrée principal
-├── ui_check_password.py    # Interface utilisateur (PySide6)
-├── check_password.py       # Logique de vérification
-├── generator_password.py   # Génération de mots de passe
-├── threads.py              # Gestion des threads
-├── style.qss              # Styles CSS pour l'interface
-├── requirements.txt       # Dépendances
-└── assets/               # Ressources (logos, icônes)
+├── main.py                  # Application entry point
+├── ui_check_password.py     # PySide6 user interface
+├── check_password.py        # Password analysis logic
+├── generator_password.py    # Secure password generation
+├── threads.py               # Asynchronous task handling
+├── style.qss                # GUI styling
+├── requirements.txt         # Project dependencies
+└── assets/                  # Icons and resources
 
-🎯 Utilisation
+Usage
 
-    Lancez l'application avec python main.py
+    Launch the application with python main.py
 
-    Saisissez un mot de passe pour analyser sa force
+    Enter a password to analyze its strength
 
-    Ou générez un nouveau mot de passe sécurisé
+    Check whether the password has been compromised
 
-    Consultez les recommandations de sécurité et vérifier si le mot de passe à déjà fuité
+    Generate a strong and secure password
 
-👨‍💻 Auteur
+    Review security recommendations
 
-Freemen HOUNGBEDJI
+Technologies Used
 
-    GitHub: @freemen812
+    Python 3.8+
 
-    Projet: F-Keyfy
+    PySide6 (GUI framework)
 
-📄 Licence
+    QSS (Qt Style Sheets)
 
-Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
+    Threading for non-blocking operations
 
-⭐ N'hésitez pas à donner une star au projet si vous le trouvez utile !
+    Have I Been Pwned API for breach detection
+
+Author
+
+Freemen Houngbedji
+
+    GitHub: @FreemenTech
+
+    Project: F-Keyfy
+
+License
+
+This project is licensed under the MIT License.
+See the LICENSE file for more information.
+
+If you find this project useful, feel free to star the repository.
+
