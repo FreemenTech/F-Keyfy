@@ -54,7 +54,7 @@ F-Keyfy does **not** track users and does **not** collect personal data.
 
 ```bash
 # Clone the repository
-git clone https://github.com/freemen812/F-Keyfy.git
+git clone https://github.com/FreemenTech/F-Keyfy.git
 cd F-Keyfy
 
 # Install dependencies
