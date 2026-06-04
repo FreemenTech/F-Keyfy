@@ -1,141 +1,220 @@
-from datetime import datetime
 import hashlib
-from argon2 import PasswordHasher, exceptions
-import math #pour calculer l'entropie du passwd
+import math
+import re
 import requests
 
-class Password:
-    def __init__(self,passwd_value):
 
+# ==================== Common passwords & patterns ====================
+# Top weak passwords — caught instantly by any dictionary attack
+COMMON_PASSWORDS = frozenset({
+    "password", "123456", "12345678", "qwerty", "abc123", "monkey",
+    "1234567", "letmein", "trustno1", "dragon", "baseball", "iloveyou",
+    "master", "sunshine", "ashley", "michael", "shadow", "123123",
+    "654321", "superman", "qazwsx", "password1", "password123",
+    "welcome", "hello", "charlie", "donald", "admin", "login",
+    "princess", "football", "azerty", "000000", "111111",
+})
+
+# Keyboard walks — sequences a brute-forcer tries early
+KEYBOARD_PATTERNS = (
+    "qwerty", "qwertz", "azerty", "asdfgh", "zxcvbn",
+    "qweasd", "1qaz2wsx", "1q2w3e", "zaq1xsw2",
+)
+
+# Leet-speak map used to normalize before checking patterns
+LEET_MAP = str.maketrans("@4301!$5", "aaeoiiss")
+
+
+class Password:
+    def __init__(self, passwd_value):
         self.passwd_value = passwd_value
         self.length = len(passwd_value)
-        self.has_majuscule = any(c.isupper() for c in passwd_value)
-        self.has_minuscule = any(c.islower() for c in passwd_value)
-        self.has_number = any(c.isdigit()for c in passwd_value)
-        self.has_special_caractere = any(not c.isalnum() for c in passwd_value)
-        self.created_at = datetime.now()
+        self.has_uppercase = any(c.isupper() for c in passwd_value)
+        self.has_lowercase = any(c.islower() for c in passwd_value)
+        self.has_number = any(c.isdigit() for c in passwd_value)
+        self.has_special_char = any(not c.isalnum() for c in passwd_value)
 
-#========== Fonctions importantes ============
-        self.password_hash=self.do_hash() #hashage passwd
-        self.unicite = self.check_unicity() #verification api
+        # Pattern detection (new)
+        self.has_common_password = self._is_common_password()
+        self.has_keyboard_pattern = self._has_keyboard_pattern()
+        self.has_repeats = self._has_repeating_chars()
+        self.has_sequences = self._has_sequential_chars()
+
+        # Core analysis
+        self.unicity = self.check_unicity()  # API check
         self.entropy_bits = self._entropy_bits()
         self.entropy_label = self._entropy_label()
         self.strength_label, self.suggestions = self._strength_analysis()
 
+    # ==================== Pattern detectors ====================
 
-    def _entropy_bits(self): 
-        #calcule l'entropie du passwd en bits
-        i = 0
-        if self.has_majuscule:           i +=26
-        if self.has_minuscule:           i +=26
-        if self.has_number:              i +=10
-        if self.has_special_caractere:   i +=32
+    def _is_common_password(self):
+        """Check against common passwords, including leet-speak variants."""
+        lower = self.passwd_value.lower()
+        normalized = lower.translate(LEET_MAP)
+        # Strip trailing digits/symbols to catch "password1!", "admin123"
+        base = re.sub(r"[\d!@#$%^&*]+$", "", normalized)
+        return lower in COMMON_PASSWORDS or base in COMMON_PASSWORDS
 
-        if i ==0:
+    def _has_keyboard_pattern(self):
+        """Detect keyboard walk patterns (qwerty, asdfgh, etc.)."""
+        lower = self.passwd_value.lower()
+        return any(pattern in lower for pattern in KEYBOARD_PATTERNS)
+
+    def _has_repeating_chars(self, threshold=3):
+        """Detect 3+ consecutive identical characters (aaa, 111)."""
+        return bool(re.search(r"(.)\1{" + str(threshold - 1) + r",}", self.passwd_value))
+
+    def _has_sequential_chars(self, run_length=3):
+        """Detect sequential runs (abc, 321, cba) of run_length or more."""
+        pwd = self.passwd_value.lower()
+        for i in range(len(pwd) - run_length + 1):
+            ords = [ord(c) for c in pwd[i:i + run_length]]
+            diffs = [ords[j + 1] - ords[j] for j in range(len(ords) - 1)]
+            # All diffs == +1 (ascending) or all == -1 (descending)
+            if all(d == 1 for d in diffs) or all(d == -1 for d in diffs):
+                return True
+        return False
+
+    # ==================== Entropy ====================
+
+    def _entropy_bits(self):
+        """Calculate password entropy in bits."""
+        pool = 0
+        if self.has_uppercase: pool += 26
+        if self.has_lowercase: pool += 26
+        if self.has_number:    pool += 10
+        if self.has_special_char: pool += 32
+
+        if pool == 0:
             return 0
-
-        return round(self.length * math.log2(i), 2) #formule de l'entropie en bits
-
+        return round(self.length * math.log2(pool), 2)
 
     def _entropy_label(self):
-        """Classe la difficulté du mot de passe selon son entropie"""
+        """Classify password difficulty based on entropy."""
         e = self.entropy_bits
         if e < 28:
-            return "Très facile à deviner 😬"
+            return "Very easy to guess 😬"
         elif e < 36:
-            return "Acceptable mais faible ⚠️"
+            return "Acceptable but weak ⚠️"
         elif e < 60:
-            return "Bon niveau 🔒"
+            return "Good level 🔒"
         else:
-            return "Très fort 💪"
-        
-        
+            return "Very strong 💪"
+
+    # ==================== Strength scoring ====================
 
     def _strength_analysis(self):
-
-        """Combine longueur, complexité et entropie pour produire un score et des conseils."""
+        """Score based on length, complexity, entropy, AND pattern penalties."""
         score = 0
         suggestions = []
 
-        # Longueur
+        # --- Positive factors ---
+
+        # Length
         if self.length >= 12:
             score += 2
         elif self.length >= 8:
             score += 1
         else:
-            suggestions.append("Utilisez au moins 8 caractères")
+            suggestions.append("Use at least 8 characters")
 
-        # Types de caractères
-        if self.has_majuscule: score += 1
-        else: suggestions.append("Ajoutez une majuscule")
+        # Character types
+        if self.has_uppercase:
+            score += 1
+        else:
+            suggestions.append("Add an uppercase letter")
 
-        if self.has_minuscule: score += 1
-        else: suggestions.append("Ajoutez une minuscule")
+        if self.has_lowercase:
+            score += 1
+        else:
+            suggestions.append("Add a lowercase letter")
 
-        if self.has_number: score += 1
-        else: suggestions.append("Ajoutez un chiffre")
+        if self.has_number:
+            score += 1
+        else:
+            suggestions.append("Add a number")
 
-        if self.has_special_caractere: score += 1
-        else: suggestions.append("Ajoutez un caractère spécial (!, @, #, $, %)")
+        if self.has_special_char:
+            score += 1
+        else:
+            suggestions.append("Add a special character (!, @, #, $, %)")
 
-        # Influence de l'entropie
+        # Entropy bonus
         if self.entropy_bits >= 50:
             score += 1
 
-        # Niveau global
+        # --- Negative factors (penalties) ---
+
+        if self.has_common_password:
+            score -= 3
+            suggestions.insert(0, "⛔ This is a commonly used password — change it entirely")
+
+        if self.has_keyboard_pattern:
+            score -= 2
+            suggestions.insert(0, "Avoid keyboard patterns (qwerty, asdfgh…)")
+
+        if self.has_repeats:
+            score -= 1
+            suggestions.insert(0, "Avoid repeated characters (aaa, 111…)")
+
+        if self.has_sequences:
+            score -= 1
+            suggestions.insert(0, "Avoid sequential characters (abc, 123…)")
+
+        # Clamp score to 0 minimum
+        score = max(score, 0)
+
+        # Overall label
         if score <= 2:
-            label = "Très faible 🔴"
+            label = "Very weak 🔴"
         elif score <= 4:
-            label = "Moyen 🟠"
+            label = "Medium 🟠"
         elif score <= 6:
-            label = "Bon 🟢"
+            label = "Good 🟢"
         else:
             label = "Excellent 🟣"
 
-        return label , suggestions
+        return label, suggestions
 
-    def get_info(self): #retourner les infos relatif à la force du password.
-         
-             # Vérifier si la liste n'est pas vide avant de prendre le premier élément
-            if self.suggestions:
-                premiere_suggestion = self.suggestions[0]  
-            else:
-                premiere_suggestion = "Aucune suggestion"
-            
-            analyse_resultat = f"""
-            📊 Entropie : {self.entropy_label}
-            💪 Force globale : {self.strength_label}
-            🧩 Suggestion principale : {premiere_suggestion}
-            """
-            return analyse_resultat
+    # ==================== Display ====================
 
-#je fus aider d'ici
-    
+    def get_info(self):
+        """Return password strength info."""
+        if self.suggestions:
+            first_suggestion = self.suggestions[0]
+        else:
+            first_suggestion = "No suggestion"
+
+        analysis_result = (
+            f"📊 Entropy : {self.entropy_label}\n"
+            f"💪 Overall strength : {self.strength_label}\n"
+            f"🧩 Main suggestion : {first_suggestion}"
+        )
+        return analysis_result
+
+    # ==================== HIBP API ====================
+
     def check_unicity(self):
         """
-        Vérifie si le mot de passe a été trouvé dans des fuites via l'API Have I Been Pwned.
-        Méthode : k-anonymity SHA-1 prefix (on n'envoie que les 5 premiers hex du SHA-1).
-        Retourne : int (nombre d'occurrences trouvées). 0 = pas trouvé.
-        En cas d'erreur réseau, retourne -1 pour indiquer 'vérification impossible'.
+        Checks if the password appears in leaks via the Have I Been Pwned API.
+        Method: k-anonymity SHA-1 prefix (only the first 5 hex digits are sent).
+        Returns: int (occurrences found). 0 = not found. -1 = check failed.
         """
         HIBP_RANGE_URL = "https://api.pwnedpasswords.com/range/{}"
-        USER_AGENT = "AfrikPlum-PasswordChecker/1.0 (contact: linguapro83@gmail.com)"
+        USER_AGENT = "F-Keyfy/1.0"
         REQUEST_TIMEOUT = 10
         try:
-            # 1) calculer SHA-1 en hex majuscule
             sha1 = hashlib.sha1(self.passwd_value.encode("utf-8")).hexdigest().upper()
             prefix, suffix = sha1[:5], sha1[5:]
 
-            # 2) requête à l'API HIBP avec timeout et User-Agent
             url = HIBP_RANGE_URL.format(prefix)
             headers = {"User-Agent": USER_AGENT}
             resp = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
 
             if resp.status_code != 200:
-                # on pourrait logger l'erreur, mais ne jamais logger le mot de passe lui-même
                 return -1
 
-            # 3) parcourir la réponse et comparer localement les suffixes
             for line in resp.text.splitlines():
                 if ":" not in line:
                     continue
@@ -148,23 +227,6 @@ class Password:
             return 0
 
         except requests.RequestException:
-            # erreur réseau (timeout, DNS, etc.)
             return -1
         except Exception:
-            # erreur imprévue
             return -1
-
-    def do_hash(self):
-        """
-        Hash Argon2 du mot de passe pour stockage.
-        Retourne la chaîne complète renvoyée par argon2 (contient salt + params + digest).
-        NB : ne pas envoyer ce hash à des services tiers.
-        """
-        try:
-            ph = PasswordHasher()  # paramètres par défaut 
-            return ph.hash(self.passwd_value)
-        except Exception as e:
-            # en cas d'erreur, retourner une valeur nulle ou lever l'exception selon le besoin
-            # ici on retourne None pour indiquer l'échec du hash (à traiter côté appelant)
-            return None
-

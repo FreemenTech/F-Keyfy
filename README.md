@@ -67,13 +67,14 @@ Project Structure
 
 F-Keyfy/
 ├── main.py                  # Application entry point
-├── ui_check_password.py     # PySide6 user interface
+├── ui_check_passwd.py       # PySide6 user interface
 ├── check_password.py        # Password analysis logic
 ├── generator_password.py    # Secure password generation
 ├── threads.py               # Asynchronous task handling
+├── list.txt                 # Word list for mnemonic generation
 ├── style.qss                # GUI styling
 ├── requirements.txt         # Project dependencies
-└── assets/                  # Icons and resources
+
 
 Usage
 
