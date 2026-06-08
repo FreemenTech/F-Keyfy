@@ -52,9 +52,12 @@ class Password:
         """Check against common passwords, including leet-speak variants."""
         lower = self.passwd_value.lower()
         normalized = lower.translate(LEET_MAP)
-        # Strip trailing digits/symbols to catch "password1!", "admin123"
-        base = re.sub(r"[\d!@#$%^&*]+$", "", normalized)
-        return lower in COMMON_PASSWORDS or base in COMMON_PASSWORDS
+        # Strip trailing digits/symbols from both original and leet-normalized
+        base_original = re.sub(r"[\d!@#$%^&*]+$", "", lower)
+        base_leet = re.sub(r"[\d!@#$%^&*]+$", "", normalized)
+        return (lower in COMMON_PASSWORDS
+                or base_original in COMMON_PASSWORDS
+                or base_leet in COMMON_PASSWORDS)
 
     def _has_keyboard_pattern(self):
         """Detect keyboard walk patterns (qwerty, asdfgh, etc.)."""
