@@ -8,6 +8,15 @@ from pathlib import Path
 block_cipher = None
 ROOT = Path(SPECPATH)
 
+# Platform-specific icon
+if sys.platform == 'win32':
+    app_icon = str(ROOT / 'assets' / 'icons' / 'logo.ico')
+elif sys.platform == 'darwin':
+    icns_path = ROOT / 'assets' / 'icons' / 'logo.icns'
+    app_icon = str(icns_path) if icns_path.exists() else None
+else:
+    app_icon = None
+
 a = Analysis(
     [str(ROOT / 'main.py')],
     pathex=[str(ROOT)],
@@ -15,6 +24,7 @@ a = Analysis(
     datas=[
         (str(ROOT / 'style.qss'), '.'),
         (str(ROOT / 'list.txt'),  '.'),
+        (str(ROOT / 'assets' / 'icons' / 'logo.png'), 'assets/icons'),
     ],
     hiddenimports=[
         'PySide6.QtCore',
@@ -46,6 +56,7 @@ exe = EXE(
     [],                    # leave empty for --onedir mode
     exclude_binaries=True, # True = --onedir (more reliable, no antivirus issues)
     name='F-Keyfy',
+    icon=app_icon,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

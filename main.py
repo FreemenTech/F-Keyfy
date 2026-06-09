@@ -1,6 +1,7 @@
 # main.py
 from PySide6.QtWidgets import QApplication, QMainWindow, QLineEdit, QMessageBox
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QIcon
 from ui_check_passwd import Ui_MainWindow
 from check_password import Password
 from generator_password import Generator_Pwd, resource_path
@@ -16,6 +17,10 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle("F-Keyfy")
         self.setFixedSize(800, 600)
+
+        # App icon (taskbar + title bar)
+        icon_path = resource_path("assets/icons/logo.png")
+        self.setWindowIcon(QIcon(icon_path))
     
         # Connect buttons and actions
         self.ui.btn_verify.clicked.connect(self.verify_passwd)
