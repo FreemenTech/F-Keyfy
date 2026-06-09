@@ -40,8 +40,8 @@ class Password:
         self.has_repeats = self._has_repeating_chars()
         self.has_sequences = self._has_sequential_chars()
 
-        # Core analysis
-        self.unicity = self.check_unicity()  # API check
+        # Core analysis (local only — no network call)
+        self.unicity = None  # set by HibpCheckThread on demand
         self.entropy_bits = self._entropy_bits()
         self.entropy_label = self._entropy_label()
         self.strength_label, self.suggestions = self._strength_analysis()

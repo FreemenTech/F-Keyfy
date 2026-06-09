@@ -14,16 +14,16 @@ from generator_password import Generator_Pwd, resource_path
 
 
 # ═══════════════════════════════════════════════════════════════
-#  Helpers — mock HIBP so tests never hit the network
+#  Helpers
 # ═══════════════════════════════════════════════════════════════
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_hibp():
-    """Block all outgoing HIBP requests. Default: password not found (0)."""
+    """Mock HIBP network requests for API tests."""
     with patch("check_password.requests.get") as mock_get:
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.text = ""  # no matching suffix → unicity = 0
+        mock_resp.text = ""  # no matching suffix → 0
         mock_get.return_value = mock_resp
         yield mock_get
 
@@ -204,10 +204,15 @@ class TestGetInfo:
 # ═══════════════════════════════════════════════════════════════
 
 class TestHibpApi:
-    def test_password_not_found(self, mock_hibp):
-        """Empty response → unicity = 0."""
+    def test_unicity_none_by_default(self):
+        """__init__ should NOT call the API — unicity stays None."""
         pwd = make_pwd("UniqueP@ss99!")
-        assert pwd.unicity == 0
+        assert pwd.unicity is None
+
+    def test_password_not_found(self, mock_hibp):
+        """Empty response → check_unicity returns 0."""
+        pwd = make_pwd("UniqueP@ss99!")
+        assert pwd.check_unicity() == 0
 
     def test_password_found_in_leaks(self, mock_hibp):
         """Simulate HIBP returning a matching suffix."""
@@ -222,24 +227,24 @@ class TestHibpApi:
         mock_hibp.return_value = mock_resp
 
         pwd = make_pwd(test_pwd)
-        assert pwd.unicity == 42
+        assert pwd.check_unicity() == 42
 
     def test_network_error_returns_minus_one(self, mock_hibp):
-        """Network failure → unicity = -1."""
+        """Network failure → check_unicity returns -1."""
         from requests.exceptions import ConnectionError
         mock_hibp.side_effect = ConnectionError("No network")
 
         pwd = make_pwd("AnyPass1!")
-        assert pwd.unicity == -1
+        assert pwd.check_unicity() == -1
 
     def test_bad_status_code(self, mock_hibp):
-        """Non-200 response → unicity = -1."""
+        """Non-200 response → check_unicity returns -1."""
         mock_resp = MagicMock()
         mock_resp.status_code = 503
         mock_hibp.return_value = mock_resp
 
         pwd = make_pwd("AnyPass1!")
-        assert pwd.unicity == -1
+        assert pwd.check_unicity() == -1
 
 
 # ═══════════════════════════════════════════════════════════════

@@ -1,117 +1,121 @@
 # F-Keyfy
 
 **F-Keyfy** is a desktop application designed to **evaluate password strength**, **detect compromised passwords**, and **generate secure passwords**.  
-It is built with **Python** and **PySide6**, with a strong focus on **security, privacy, and usability**.
+Built with **Python** and **PySide6**, with a strong focus on **security, privacy, and usability**.
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![PySide6](https://img.shields.io/badge/PySide6-GUI-green.svg)
+![Tests](https://img.shields.io/badge/tests-41%20passed-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ---
 
 ## Features
 
-- Advanced password strength analysis
-- Secure password generation
-- Compromised password detection using **Have I Been Pwned**
-- Detailed security feedback and recommendations
-- Modern desktop GUI (PySide6 + QSS)
-- Asynchronous threading for smooth performance
-
----
-
-## Why F-Keyfy?
-
-Weak, reused, or leaked passwords remain one of the main causes of security breaches.  
-F-Keyfy aims to:
-
-- Help users evaluate the real strength of their passwords
-- Detect whether a password has already appeared in known data breaches
-- Encourage the use of strong and unique passwords
-- Provide a fast, local, and user-friendly desktop solution
+- **Strength analysis** — entropy calculation, character type detection, and composite scoring
+- **Pattern detection** — catches common passwords (incl. leet-speak variants like `P@ssw0rd`), keyboard walks (`qwerty`, `asdfgh`), repeated characters, and sequential runs
+- **Breach detection** — checks passwords against the Have I Been Pwned database using k-anonymity (only a 5-character SHA-1 prefix leaves your machine)
+- **Password generation** — cryptographically secure random passwords (`secrets` module) and mnemonic passphrases
+- **Clipboard auto-clear** — copied passwords are wiped from clipboard after 30 seconds
+- **Non-blocking UI** — all network calls and heavy analysis run in background threads
+- **Cross-platform builds** — build scripts for Windows, Linux, and macOS
 
 ---
 
 ## Security & Privacy
 
-Security and privacy are core principles of F-Keyfy:
-
-- Passwords are **never stored**
-- Passwords are **never logged**
-- No plaintext password is saved locally
-- Compromised password checks use the **Have I Been Pwned API**
-- The password is processed in a **hashed form** before being checked
-- Only partial hashes are transmitted (k-anonymity model)
-- No sensitive data is sent or retained
-
-F-Keyfy does **not** track users and does **not** collect personal data.
+- Passwords are **never stored** and **never logged**
+- Breach checks use the **k-anonymity model** — only a partial hash is transmitted
+- Password generation uses Python's `secrets` module (cryptographically secure PRNG)
+- No tracking, no data collection, no telemetry
 
 ---
 
-## Installation & Usage
+## Installation
 
 ### From source
 
 ```bash
-# Clone the repository
 git clone https://github.com/FreemenTech/F-Keyfy.git
 cd F-Keyfy
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run the application
 python main.py
+```
 
-Project Structure
+### Build standalone executable
 
+**Linux / macOS:**
+
+```bash
+chmod +x build.sh
+./build.sh
+```
+
+The executable is in `dist/F-Keyfy/`. On macOS, a `.app` bundle is also generated.
+
+**Windows:**
+
+```
+build.bat
+```
+
+The executable is in `dist\F-Keyfy\F-Keyfy.exe`. Zip the entire `dist\F-Keyfy\` folder to distribute.
+
+---
+
+## Tests
+
+```bash
+pip install pytest
+pytest test_fkeyfy.py -v
+```
+
+41 tests covering character detection, entropy calculation, pattern detection (common passwords, leet-speak, keyboard walks, sequences, repeats), strength scoring, HIBP API (mocked), password generation, and mnemonic generation.
+
+---
+
+## Project Structure
+
+```
 F-Keyfy/
 ├── main.py                  # Application entry point
 ├── ui_check_passwd.py       # PySide6 user interface
-├── check_password.py        # Password analysis logic
-├── generator_password.py    # Secure password generation
-├── threads.py               # Asynchronous task handling
+├── check_password.py        # Password analysis + pattern detection
+├── generator_password.py    # Secure password generation (secrets)
+├── threads.py               # Background threads (analysis + HIBP)
+├── test_fkeyfy.py           # Test suite (41 tests)
 ├── list.txt                 # Word list for mnemonic generation
-├── style.qss                # GUI styling
-├── requirements.txt         # Project dependencies
+├── style.qss                # GUI styling (QSS)
+├── requirements.txt         # Python dependencies
+├── F-Keyfy.spec             # PyInstaller build config
+├── build.sh                 # Build script (Linux/macOS)
+├── build.bat                # Build script (Windows)
+├── LICENSE                  # MIT License
+└── assets/
+    └── icons/
+        ├── logo.png         # App icon (512x512)
+        └── logo.ico         # App icon (Windows)
+```
 
+---
 
-Usage
+## Technologies
 
-    Launch the application with python main.py
+- **Python 3.10+**
+- **PySide6** — Qt-based GUI framework
+- **QSS** — Qt Style Sheets for theming
+- **Have I Been Pwned API** — breach detection via k-anonymity
+- **PyInstaller** — cross-platform packaging
 
-    Enter a password to analyze its strength
+---
 
-    Check whether the password has been compromised
+## Author
 
-    Generate a strong and secure password
+**Freemen Houngbedji**  
+GitHub: [@FreemenTech](https://github.com/FreemenTech)
 
-    Review security recommendations
+---
 
-Technologies Used
+## License
 
-    Python 3.8+
-
-    PySide6 (GUI framework)
-
-    QSS (Qt Style Sheets)
-
-    Threading for non-blocking operations
-
-    Have I Been Pwned API for breach detection
-
-Author
-
-Freemen Houngbedji
-
-    GitHub: @FreemenTech
-
-    Project: F-Keyfy
-
-License
-
-This project is licensed under the MIT License.
-See the LICENSE file for more information.
-
-If you find this project useful, feel free to star the repository.
-
+This project is licensed under the [MIT License](LICENSE).

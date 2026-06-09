@@ -75,14 +75,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_verify.setEnabled(True)
         self.ui.progressBar.setRange(0, 100)
         self.update_progress_bar(password_obj.strength_label)
-        
-        result_text = password_obj.get_info()
-        if password_obj.unicity > 0:
-            result_text += f"\n\n⚠️ Password found {password_obj.unicity} times in leaks!"
-        elif password_obj.unicity == -1:
-            result_text += f"\n\n🌐 API verification impossible (network error)"
-        
-        self.ui.label_tips.setText(result_text)
+        self.ui.label_tips.setText(password_obj.get_info())
 
     # ====================== Update progress bar according to password strength ======================
     def update_progress_bar(self, strength_label):
